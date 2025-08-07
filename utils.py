@@ -43,9 +43,11 @@ def update_notion_row(notion_id, title):
     )
 
 
-def update_supabase_row(supa_id, title):
-    supabase.table(SUPABASE_TABLE).update({"title": title}).eq("id", supa_id).execute()
-
+def update_supabase_row(supa_id, name, content):
+    supabase.table(SUPABASE_TABLE).update({
+        "name": name,
+        "content": content
+    }).eq("id", supa_id).execute()
 
 def insert_into_notion(title):
     notion.pages.create(
@@ -56,5 +58,11 @@ def insert_into_notion(title):
     )
 
 
-def insert_into_supabase(title):
-    supabase.table(SUPABASE_TABLE).insert({"title": title}).execute()
+def insert_into_supabase(name, content, notion_id):
+    supabase.table(SUPABASE_TABLE).insert({
+        "name": name,
+        "content": content,
+        "notion_id": notion_id  # optional field for tracking
+    }).execute()
+
+

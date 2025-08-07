@@ -1,9 +1,6 @@
 from fastapi import FastAPI, Request, Header
-from utils import update_supabase_row, insert_into_supabase
-import hmac
-import hashlib
-import os
-import json
+from utils import insert_into_supabase, update_supabase_row
+import hmac, hashlib, os, json
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -26,13 +23,18 @@ async def notion_webhook(request: Request, notion_signature: str = Header(None))
         return {"status": "invalid signature"}
 
     payload = await request.json()
-    print("Received webhook payload:", json.dumps(payload, indent=2))
 
     for event in payload.get("events", []):
         if event["type"] == "page.updated":
-            title = event["payload"]["properties"]["Name"]["title"][0]["plain_text"]
-            notion_id = event["payload"]["id"]
-            # Update or insert in Supabase
-            update_or_insert_in_supabase(notion_id, title)
+            page = event["payload"]
+
+            props = page.get("properties", {})
+            name = props.get("name", {}).get("title", [{}])[0].get("plain_text", "")
+            content = props.get("content", {}).get("rich_text", [{}])[0].get("plain_text", "")
+            notion_id = page["id"]
+
+            # You can check Supabase to see if it exists or not
+            # For now, assume insert (can add conflict handling later)
+            insert_into_supabase(name, content, notion_id)
 
     return {"status": "success"}
